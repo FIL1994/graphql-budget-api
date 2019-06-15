@@ -3,10 +3,29 @@ const graphqlHTTP = require("express-graphql");
 const { buildSchema } = require("graphql");
 
 const expenses = [];
-let id = 0;
+const incomes = [];
+let expenseID = 0;
+let incomeID = 0;
 
 const schema = buildSchema(`
-    type Expense {
+    type Query {
+        expenses: [Expense]
+        getExpense(id: ID!): Expense
+        incomes: [Income]
+        getIncome(id: ID!): Income
+    }
+
+    type Mutation {
+        createExpense(expense: ExpenseInput): Expense
+        createIncome(income: IncomeInput): Income
+    }
+
+    interface Transaction {
+        description: String!
+        amount: Float!
+    }
+
+    type Expense implements Transaction {
         id: ID!
         description: String!
         amount: Float!
@@ -17,13 +36,15 @@ const schema = buildSchema(`
         amount: Float!
     }
 
-    type Query {
-        expenses: [Expense]
-        getExpense(id: ID!): Expense
+    type Income implements Transaction {
+        id: ID!
+        description: String!
+        amount: Float!
     }
 
-    type Mutation {
-        createExpense(expense: ExpenseInput): Expense
+    input IncomeInput {
+        description: String!
+        amount: Float!
     }
 `);
 
@@ -32,12 +53,23 @@ const root = {
     return expenses;
   },
   createExpense({ expense }) {
-    expense.id = ++id;
+    expense.id = ++expenseID;
     expenses.push(expense);
     return expense;
   },
   getExpense({ id }) {
     return expenses.find(expense => expense.id === id);
+  },
+  incomes() {
+    return incomes;
+  },
+  createIncome({ income }) {
+    income.id = ++incomeID;
+    incomes.push(income);
+    return income;
+  },
+  getIncome({ id }) {
+    return incomes.find(income => income.id === id);
   }
 };
 
